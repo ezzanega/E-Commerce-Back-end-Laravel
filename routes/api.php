@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CategoriesController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\TagsController;
+use App\Http\Controllers\Api\VilleController;
 use App\Http\Controllers\CartController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -26,10 +27,14 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
+Route::post('/auth/google', [AuthController::class, 'RegisterWithGoogle']);
+Route::post('/login/google', [AuthController::class, 'LoginWithGoogle']);
+
 Route::post('auth/login', [AuthController::class, 'login']);
 Route::get('/user', [AuthController::class, 'getUserById']);
 Route::post('/register', [AuthController::class, 'register']);
-
+Route::get('/villes', [VilleController::class, 'getAllVilles']);
+Route::put('/user/update/{id}', [OrderController::class, 'updateUser']);
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::post('/add-product', [ProductController::class, 'store']);

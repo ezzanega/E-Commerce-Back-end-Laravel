@@ -14,7 +14,6 @@ class Product extends Model
         'old_price',
         'sku',
         'categorie_id',
-        'tag_id',
         'color',
         'image_initiale',
         'description'
@@ -31,10 +30,10 @@ class Product extends Model
     /**
      * Get the tag that owns the product.
      */
-    public function tag()
-    {
-        return $this->belongsTo(Tag::class);
-    }
+    // public function tag()
+    // {
+    //     return $this->belongsTo(Tag::class);
+    // }
 
     public function images()
     {
@@ -44,5 +43,10 @@ class Product extends Model
     public function carts()
     {
         return $this->hasMany(Cart::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'product_tags', 'product_id', 'tag_id');
     }
 }

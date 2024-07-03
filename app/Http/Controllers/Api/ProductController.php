@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::with(['category', 'tag', 'images'])->orderBy('created_at', 'desc')->paginate(10);
+        $products = Product::with(['category', 'tags', 'images'])->orderBy('created_at', 'desc')->paginate(10);
         return response()->json($products);
     }
 
@@ -24,11 +24,12 @@ class ProductController extends Controller
             'old_price' => 'nullable|numeric',
             'sku' => 'required|string|max:255|unique:products,sku',
             'categorie_id' => 'required|exists:categories,id',
-            'tag_id' => 'required|exists:tags,id',
+            'tags' => 'required|array',
+            'tags.*' => 'exists:tags,id',
             'color' => 'nullable|string|max:255',
-            'image_initiale' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
-            'description' => 'required|string',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg'
+            'image_initiale' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'description' => 'string',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048'
         ]);
 
         // Handle the main image upload
@@ -38,33 +39,31 @@ class ProductController extends Controller
         }
 
         // Create a new product
-       // $product = Product::create($validatedData);
+        $product = Product::create($validatedData);
+
+
+        // Attach tags to the product
+        if ($request->has('tags')) {
+            $product->tags()->sync($request->tags);
+        }
 
         // Handle additional images if any
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $imagePath = $image->store('products', 'public');
-                // Image::create([
-                //     'product_id' => $product->id,
-                //     'image' => $imagePath
-                // ]);
-
-                return response()->json( 'Images :'.$imagePath);
+                Image::create([
+                    'product_id' => $product->id,
+                    'image' => $imagePath
+                ]);
             }
-
-
         }
-        else{
-            return response()->json('Pas dimage');
-        }
-        return response()->json($request->all());
+
         // Return a response
-        // return response()->json([
-        //     'message' => 'Product created successfully',
-        //     'product' => $product,
-        // ], 201);
+        return response()->json([
+            'message' => 'Product created successfully',
+            'product' => $product,
+        ], 201);
     }
-
 
     public function destroy($id)
     {
@@ -88,7 +87,7 @@ class ProductController extends Controller
 
     public function getProductById($id)
     {
-        $product = Product::with(['category', 'tag', 'images'])->find($id);
+        $product = Product::with(['category', 'tags', 'images'])->find($id);
 
         if (!$product) {
             return response()->json([
