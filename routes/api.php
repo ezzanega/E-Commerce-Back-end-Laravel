@@ -40,6 +40,8 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::post('/add-product', [ProductController::class, 'store']);
 Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 Route::get('/products-details/{id}', [ProductController::class, 'getProductById']);
+Route::put('/orders/{id}/update/status', [OrderController::class, 'updateOrderStatus']);
+
 
 //Tags
 Route::get('/tags', [TagsController::class, 'index']);

@@ -59,7 +59,7 @@ class OrderController extends Controller
     public function getAllOrders(Request $request)
     {
         $perPage = $request->input('per_page', 10);
-        $orders = Order::with('user')->paginate($perPage);
+        $orders = Order::with('user')->orderBy('created_at','desc')->paginate($perPage);
         return response()->json($orders);
     }
 
@@ -67,13 +67,15 @@ class OrderController extends Controller
     {
         $allCount = Order::count();
         $pendingCount = Order::where('status', 'pending')->count();
-        $sentCount = Order::where('status', 'sent')->count();
-        $canceledCount = Order::where('status', 'canceled')->count();
+        $sentCount = Order::where('status', 'completed')->count();
+        $processingCount = Order::where('status', 'processing')->count();
+        $canceledCount = Order::where('status', 'cancelled')->count();
 
         return response()->json([
             'all' => $allCount,
             'pending' => $pendingCount,
             'sent' => $sentCount,
+            'processing' => $processingCount,
             'canceled' => $canceledCount,
         ]);
     }
@@ -115,5 +117,31 @@ class OrderController extends Controller
         $user->save();
 
         return response()->json(['message' => 'User information updated successfully', 'user' => $user], 200);
+    }
+
+
+    public function updateOrderStatus(Request $request, $id)
+    {
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string|in:pending,processing,completed,cancelled',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Find the order by ID
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        // Update the order status
+        $order->status = $request->input('status');
+        $order->save();
+
+        return response()->json(['message' => 'Order status updated successfully', 'order' => $order], 200);
     }
 }
